@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import test from "node:test";
 
 import {
   CastlingRights,
@@ -307,4 +308,29 @@ describe("toString()", () => {
       ].join("\n"),
     );
   });
+});
+
+test("moves the king to a new square", () => {
+  const position = Position.empty();
+
+  position.putPiece(4, Piece.WhiteKing);
+
+  position.movePiece(4, 12);
+
+  assert.equal(position.pieceAt(4), Piece.None);
+  assert.equal(position.pieceAt(12), Piece.WhiteKing);
+});
+
+
+test("moves a piece and returns the captured piece", () => {
+  const position = Position.empty();
+
+  position.putPiece(4, Piece.WhiteKing);
+  position.putPiece(12, Piece.BlackRook);
+
+  const captured = position.movePiece(4, 12);
+
+  assert.equal(captured, Piece.BlackRook);
+  assert.equal(position.pieceAt(4), Piece.None);
+  assert.equal(position.pieceAt(12), Piece.WhiteKing);
 });

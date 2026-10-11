@@ -384,3 +384,80 @@ test("detects a square attacked by a pawn", () => {
     true
   );
 });
+
+test("detects a square attacked by a king", () => {
+  const position = Position.empty();
+
+  // White king on e5
+  position.putPiece(36, Piece.WhiteKing);
+
+  // Black king on d6
+  position.putPiece(43, Piece.BlackKing);
+
+  assert.equal(
+    MoveGenerator.isSquareAttacked(position, 43, Color.White),
+    true
+  );
+});
+
+test("detects when the king is in check", () => {
+  const position = Position.empty();
+
+  // White king on e1
+  position.putPiece(4, Piece.WhiteKing);
+
+  // Black rook on e8
+  position.putPiece(60, Piece.BlackRook);
+
+  assert.equal(
+    MoveGenerator.isKingInCheck(position, Color.White),
+    true
+  );
+});
+
+test("detects a square attacked by a queen", () => {
+  const position = Position.empty();
+
+  // White queen on e5
+  position.putPiece(36, Piece.WhiteQueen);
+
+  // Black king on e8
+  position.putPiece(60, Piece.BlackKing);
+
+  assert.equal(
+    MoveGenerator.isSquareAttacked(position, 60, Color.White),
+    true
+  );
+});
+
+test("detects when the black king is in check", () => {
+  const position = Position.empty();
+
+  // Black king on e8
+  position.putPiece(60, Piece.BlackKing);
+
+  // White rook on e1
+  position.putPiece(4, Piece.WhiteRook);
+
+  assert.equal(
+    MoveGenerator.isKingInCheck(position, Color.Black),
+    true
+  );
+});
+
+test("generates pseudo-legal king moves while in check", () => {
+  const position = Position.empty();
+
+  // White king on e1
+  position.putPiece(4, Piece.WhiteKing);
+
+  // Black rook on e8
+  position.putPiece(60, Piece.BlackRook);
+
+  const moves = MoveGenerator.generate(position);
+
+  assert.equal(
+    moves.some((move) => move.from === 4),
+    true
+  );
+});

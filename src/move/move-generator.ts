@@ -321,10 +321,11 @@ for (const [fileDirection, rankDirection] of directions) {
         continue;
       }
 
-      if (
-        pieceColor(targetPiece) === byColor &&
-        pieceType(targetPiece) === PieceType.Rook
-      ) {
+if (
+  pieceColor(targetPiece) === byColor &&
+  (pieceType(targetPiece) === PieceType.Rook ||
+    pieceType(targetPiece) === PieceType.Queen)
+) {
         return true;
       }
 
@@ -358,14 +359,51 @@ for (const [fileDirection, rankDirection] of bishopDirections) {
       continue;
     }
 
-    if (
-      pieceColor(targetPiece) === byColor &&
-      pieceType(targetPiece) === PieceType.Bishop
-    ) {
+if (
+  pieceColor(targetPiece) === byColor &&
+  (pieceType(targetPiece) === PieceType.Bishop ||
+    pieceType(targetPiece) === PieceType.Queen)
+) {
       return true;
     }
 
     break;
+  }
+}
+
+const kingOffsets = [
+  [-1, -1],
+  [0, -1],
+  [1, -1],
+  [-1, 0],
+  [1, 0],
+  [-1, 1],
+  [0, 1],
+  [1, 1],
+];
+
+for (const [fileOffset, rankOffset] of kingOffsets) {
+  const targetFile = file + fileOffset;
+  const targetRank = rank + rankOffset;
+
+  if (
+    targetFile < 0 ||
+    targetFile > 7 ||
+    targetRank < 0 ||
+    targetRank > 7
+  ) {
+    continue;
+  }
+
+  const targetSquare = targetRank * 8 + targetFile;
+  const targetPiece = position.pieceAt(targetSquare);
+
+  if (
+    targetPiece !== Piece.None &&
+    pieceColor(targetPiece) === byColor &&
+    pieceType(targetPiece) === PieceType.King
+  ) {
+    return true;
   }
 }
 
@@ -435,6 +473,36 @@ for (const [fileOffset, rankOffset] of knightOffsets) {
 
   return false;
 
+}
+
+public static isKingInCheck(
+  position: Position,
+  color: Color,
+): boolean {
+  let kingSquare = -1;
+
+  for (let square = 0; square < 64; square++) {
+    const piece = position.pieceAt(square);
+
+    if (
+      piece !== Piece.None &&
+      pieceColor(piece) === color &&
+      pieceType(piece) === PieceType.King
+    ) {
+      kingSquare = square;
+      break;
+    }
+  }
+
+  if (kingSquare === -1) {
+    return false;
+  }
+
+  return this.isSquareAttacked(
+    position,
+    kingSquare,
+    color === Color.White ? Color.Black : Color.White,
+  );
 }
 
 }
