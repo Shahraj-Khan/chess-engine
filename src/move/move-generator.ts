@@ -2,6 +2,10 @@ import { Position } from "../core/position.js";
 import { Color } from "../core/color.js";
 import { Piece, PieceType, pieceColor, pieceType } from "../core/piece.js";
 import { Move } from "./move.js";
+import { makeMove } from "./make-move.js";
+import { CastlingRights } from "../core/castling.js";
+import { MoveType } from "./move.js";
+
 
 
 export class MoveGenerator {
@@ -75,6 +79,7 @@ private static generatePawnMoves(
     position.sideToMove === Color.White ? rank + 1 : rank - 1;
 
   if (captureRank >= 0 && captureRank <= 7) {
+
     // Capture to the left
     if (file > 0) {
       const targetSquare = captureRank * 8 + (file - 1);
@@ -85,6 +90,12 @@ private static generatePawnMoves(
         pieceColor(targetPiece) !== position.sideToMove
       ) {
         moves.push(new Move(square, targetSquare));
+      }
+
+      if (position.enPassantSquare === targetSquare) {
+        moves.push(
+          new Move(square, targetSquare, MoveType.EN_PASSANT)
+        );
       }
     }
 
@@ -98,6 +109,12 @@ private static generatePawnMoves(
         pieceColor(targetPiece) !== position.sideToMove
       ) {
         moves.push(new Move(square, targetSquare));
+      }
+
+      if (position.enPassantSquare === targetSquare) {
+        moves.push(
+          new Move(square, targetSquare, MoveType.EN_PASSANT)
+        );
       }
     }
   }
@@ -285,6 +302,58 @@ private static generateKingMoves(
       moves.push(new Move(square, targetSquare));
     }
   }
+
+  // White king-side castling
+if (
+  position.sideToMove === Color.White &&
+  (position.castlingRights & CastlingRights.WhiteKingSide) !== 0 &&
+  position.isEmpty(5) &&
+  position.isEmpty(6) &&
+  !this.isSquareAttacked(position, 4, Color.Black) &&
+  !this.isSquareAttacked(position, 5, Color.Black) &&
+  !this.isSquareAttacked(position, 6, Color.Black)
+) {
+  moves.push(new Move(4, 6, MoveType.CASTLE));
+}
+
+if (
+  position.sideToMove === Color.White &&
+  (position.castlingRights & CastlingRights.WhiteQueenSide) !== 0 &&
+  position.isEmpty(1) &&
+  position.isEmpty(2) &&
+  position.isEmpty(3) &&
+  !this.isSquareAttacked(position, 4, Color.Black) &&
+  !this.isSquareAttacked(position, 3, Color.Black) &&
+  !this.isSquareAttacked(position, 2, Color.Black)
+) {
+  moves.push(new Move(4, 2, MoveType.CASTLE));
+}
+
+if (
+  position.sideToMove === Color.Black &&
+  (position.castlingRights & CastlingRights.BlackKingSide) !== 0 &&
+  position.isEmpty(61) &&
+  position.isEmpty(62) &&
+  !this.isSquareAttacked(position, 60, Color.White) &&
+  !this.isSquareAttacked(position, 61, Color.White) &&
+  !this.isSquareAttacked(position, 62, Color.White)
+) {
+  moves.push(new Move(60, 62, MoveType.CASTLE));
+}
+
+if (
+  position.sideToMove === Color.Black &&
+  (position.castlingRights & CastlingRights.BlackQueenSide) !== 0 &&
+  position.isEmpty(57) &&
+  position.isEmpty(58) &&
+  position.isEmpty(59) &&
+  !this.isSquareAttacked(position, 60, Color.White) &&
+  !this.isSquareAttacked(position, 59, Color.White) &&
+  !this.isSquareAttacked(position, 58, Color.White)
+) {
+  moves.push(new Move(60, 58, MoveType.CASTLE));
+}
+
 }
 
 public static isSquareAttacked(
@@ -503,6 +572,37 @@ public static isKingInCheck(
     kingSquare,
     color === Color.White ? Color.Black : Color.White,
   );
+}
+
+public static isCheckmate(position: Position): boolean {
+  return (
+    this.isKingInCheck(position, position.sideToMove) &&
+    this.generateLegalMoves(position).length === 0
+  );
+}
+
+public static isStalemate(position: Position): boolean {
+  return (
+    !this.isKingInCheck(position, position.sideToMove) &&
+    this.generateLegalMoves(position).length === 0
+  );
+}
+
+public static generateLegalMoves(position: Position): Move[] {
+  const pseudoLegalMoves = this.generate(position);
+  const legalMoves: Move[] = [];
+
+  for (const move of pseudoLegalMoves) {
+    const nextPosition = position.clone();
+
+    makeMove(nextPosition, move);
+
+    if (!this.isKingInCheck(nextPosition, position.sideToMove)) {
+      legalMoves.push(move);
+    }
+  }
+
+  return legalMoves;
 }
 
 }

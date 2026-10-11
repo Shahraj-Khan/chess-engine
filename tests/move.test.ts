@@ -5,9 +5,11 @@ import assert from "node:assert/strict";
 import { Move, MoveType } from "../src/move/move.js";
 import { Position } from "../src/core/position.js";
 import { Piece } from "../src/core/piece.js";
-import { makeMove } from "../src/move/make-move.js";
+import { makeMove, unmakeMove } from "../src/move/make-move.js";
 import { Color } from "../src/core/color.js";
 import { CastlingRights } from "../src/core/castling.js";
+
+
 
 
 test("Move stores source and destination squares", () => {
@@ -558,4 +560,451 @@ test("promotes a white pawn to a knight", () => {
 
   assert.equal(position.pieceAt(54), Piece.None);
   assert.equal(position.pieceAt(62), Piece.WhiteKnight);
+});
+
+test("promotes a white pawn to a rook", () => {
+  const position = Position.empty();
+
+  position.putPiece(54, Piece.WhitePawn); // g7
+  position.putPiece(4, Piece.WhiteKing);  // e1
+  position.putPiece(60, Piece.BlackKing); // e8
+
+  const move = new Move(
+    54,
+    62,
+    MoveType.PROMOTION,
+    Piece.WhiteRook
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(54), Piece.None);
+  assert.equal(position.pieceAt(62), Piece.WhiteRook);
+});
+
+test("promotes a white pawn to a bishop", () => {
+  const position = Position.empty();
+
+  position.putPiece(54, Piece.WhitePawn); // g7
+  position.putPiece(4, Piece.WhiteKing);  // e1
+  position.putPiece(60, Piece.BlackKing); // e8
+
+  const move = new Move(
+    54,
+    62,
+    MoveType.PROMOTION,
+    Piece.WhiteBishop
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(54), Piece.None);
+  assert.equal(position.pieceAt(62), Piece.WhiteBishop);
+});
+
+test("promotes a black pawn to a knight", () => {
+  const position = Position.empty();
+
+  position.putPiece(14, Piece.BlackPawn); // g2
+  position.putPiece(4, Piece.WhiteKing);  // e1
+  position.putPiece(60, Piece.BlackKing); // e8
+
+  const move = new Move(
+    14,
+    6,
+    MoveType.PROMOTION,
+    Piece.BlackKnight
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(14), Piece.None);
+  assert.equal(position.pieceAt(6), Piece.BlackKnight);
+});
+
+test("promotes a black pawn to a rook", () => {
+  const position = Position.empty();
+
+  position.putPiece(14, Piece.BlackPawn); // g2
+  position.putPiece(4, Piece.WhiteKing);  // e1
+  position.putPiece(60, Piece.BlackKing); // e8
+
+  const move = new Move(
+    14,
+    6,
+    MoveType.PROMOTION,
+    Piece.BlackRook
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(14), Piece.None);
+  assert.equal(position.pieceAt(6), Piece.BlackRook);
+});
+
+test("promotes a black pawn to a bishop", () => {
+  const position = Position.empty();
+
+  position.putPiece(14, Piece.BlackPawn); // g2
+  position.putPiece(4, Piece.WhiteKing);  // e1
+  position.putPiece(60, Piece.BlackKing); // e8
+
+  const move = new Move(
+    14,
+    6,
+    MoveType.PROMOTION,
+    Piece.BlackBishop
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(14), Piece.None);
+  assert.equal(position.pieceAt(6), Piece.BlackBishop);
+});
+
+test("promotes a white pawn to a queen after capture", () => {
+  const position = Position.empty();
+
+  position.putPiece(48, Piece.WhitePawn); // a7
+  position.putPiece(57, Piece.BlackRook); // b8
+  position.putPiece(4, Piece.WhiteKing);   // e1
+  position.putPiece(60, Piece.BlackKing);  // e8
+
+  const move = new Move(
+    48,
+    57,
+    MoveType.PROMOTION,
+    Piece.WhiteQueen
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(48), Piece.None);
+  assert.equal(position.pieceAt(57), Piece.WhiteQueen);
+});
+
+test("promotes a black pawn to a queen after capture", () => {
+  const position = Position.empty();
+
+  position.putPiece(9, Piece.BlackPawn);   // b2
+  position.putPiece(0, Piece.WhiteRook);   // a1
+  position.putPiece(4, Piece.WhiteKing);  // e1
+  position.putPiece(60, Piece.BlackKing); // e8
+
+  const move = new Move(
+    9,
+    0,
+    MoveType.PROMOTION,
+    Piece.BlackQueen
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(9), Piece.None);
+  assert.equal(position.pieceAt(0), Piece.BlackQueen);
+});
+
+test("promotes a black pawn to a knight after capture", () => {
+  const position = Position.empty();
+
+  position.putPiece(9, Piece.BlackPawn);   // b2
+  position.putPiece(0, Piece.WhiteRook);   // a1
+  position.putPiece(4, Piece.WhiteKing);  // e1
+  position.putPiece(60, Piece.BlackKing); // e8
+
+  const move = new Move(
+    9,
+    0,
+    MoveType.PROMOTION,
+    Piece.BlackKnight
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(9), Piece.None);
+  assert.equal(position.pieceAt(0), Piece.BlackKnight);
+});
+
+test("promotes a white pawn to a knight after capture", () => {
+  const position = Position.empty();
+
+  position.putPiece(48, Piece.WhitePawn);   // a7
+  position.putPiece(57, Piece.BlackRook);   // b8
+  position.putPiece(4, Piece.WhiteKing);    // e1
+  position.putPiece(60, Piece.BlackKing);   // e8
+
+  const move = new Move(
+    48,
+    57,
+    MoveType.PROMOTION,
+    Piece.WhiteKnight
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(48), Piece.None);
+  assert.equal(position.pieceAt(57), Piece.WhiteKnight);
+});
+
+test("promotes a white pawn to a rook after capture", () => {
+  const position = Position.empty();
+
+  position.putPiece(48, Piece.WhitePawn);  // a7
+  position.putPiece(57, Piece.BlackRook);  // b8
+  position.putPiece(4, Piece.WhiteKing);   // e1
+  position.putPiece(60, Piece.BlackKing);  // e8
+
+  const move = new Move(
+    48,
+    57,
+    MoveType.PROMOTION,
+    Piece.WhiteRook
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(48), Piece.None);
+  assert.equal(position.pieceAt(57), Piece.WhiteRook);
+});
+
+test("promotes a black pawn to a rook after capture", () => {
+  const position = Position.empty();
+
+  position.putPiece(9, Piece.BlackPawn);  // b2
+  position.putPiece(0, Piece.WhiteRook);  // a1
+  position.putPiece(4, Piece.WhiteKing);  // e1
+  position.putPiece(60, Piece.BlackKing); // e8
+
+  const move = new Move(
+    9,
+    0,
+    MoveType.PROMOTION,
+    Piece.BlackRook
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(9), Piece.None);
+  assert.equal(position.pieceAt(0), Piece.BlackRook);
+});
+
+test("resets the halfmove clock after promotion", () => {
+  const position = Position.empty();
+
+  position.putPiece(48, Piece.WhitePawn); // a7
+  position.putPiece(4, Piece.WhiteKing);  // e1
+  position.putPiece(60, Piece.BlackKing); // e8
+
+  position.halfmoveClock = 37;
+
+  const move = new Move(
+    48,
+    56,
+    MoveType.PROMOTION,
+    Piece.WhiteQueen
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(56), Piece.WhiteQueen);
+  assert.equal(position.halfmoveClock, 0);
+});
+
+test("changes side to move after promotion", () => {
+  const position = Position.empty();
+
+  position.putPiece(48, Piece.WhitePawn); // a7
+  position.putPiece(4, Piece.WhiteKing);  // e1
+  position.putPiece(60, Piece.BlackKing); // e8
+
+  assert.equal(position.sideToMove, Color.White);
+
+  const move = new Move(
+    48,
+    56,
+    MoveType.PROMOTION,
+    Piece.WhiteQueen
+  );
+
+  makeMove(position, move);
+
+  assert.equal(position.sideToMove, Color.Black);
+});
+
+test("increments the fullmove number after black promotion", () => {
+  const position = Position.empty();
+
+  position.putPiece(9, Piece.BlackPawn);   // b2
+  position.putPiece(4, Piece.WhiteKing);   // e1
+  position.putPiece(60, Piece.BlackKing);  // e8
+
+  position.sideToMove = Color.Black;
+  position.fullmoveNumber = 10;
+
+  const move = new Move(
+    9,
+    1,
+    MoveType.PROMOTION,
+    Piece.BlackQueen
+  );
+
+
+  
+  makeMove(position, move);
+
+  assert.equal(position.pieceAt(1), Piece.BlackQueen);
+  assert.equal(position.fullmoveNumber, 11);
+});
+
+test("unmakes a normal move", () => {
+  const position = Position.initial();
+  const original = position.clone();
+
+  const move = new Move(12, 28); // e2 -> e4
+
+const undoState = makeMove(position, move);
+unmakeMove(position, move, undoState);
+
+  assert.equal(position.equals(original), true);
+});
+
+test("unmake restores side to move", () => {
+  const position = Position.initial();
+
+  const move = new Move(12, 28); // e2 -> e4
+
+  const originalSide = position.sideToMove;
+
+const undoState = makeMove(position, move);
+unmakeMove(position, move, undoState);
+
+  assert.equal(position.sideToMove, originalSide);
+});
+
+test("unmake restores en passant square", () => {
+  const position = Position.initial();
+
+  const move = new Move(12, 28); // e2 -> e4
+
+  const originalEnPassantSquare = position.enPassantSquare;
+
+const undoState = makeMove(position, move);
+unmakeMove(position, move, undoState);
+
+  assert.equal(
+    position.enPassantSquare,
+    originalEnPassantSquare
+  );
+});
+
+test("unmakes a normal move", () => {
+  const position = Position.initial();
+  const original = position.clone();
+
+  const move = new Move(12, 28);
+
+  const undoState = makeMove(position, move);
+  unmakeMove(position, move, undoState);
+
+  assert.equal(position.equals(original), true);
+});
+
+test("unmakes a capture and restores captured piece", () => {
+  const position = Position.empty();
+
+  position.putPiece(4, Piece.WhiteKing);   // e1
+  position.putPiece(60, Piece.BlackKing);  // e8
+  position.putPiece(12, Piece.WhiteRook);  // e2
+  position.putPiece(20, Piece.BlackRook);  // e3
+
+  const original = position.clone();
+
+  const move = new Move(12, 20); // e2 -> e3, captures black rook
+
+  const undoState = makeMove(position, move);
+  unmakeMove(position, move, undoState);
+
+  assert.equal(position.equals(original), true);
+});
+
+test("unmakes an en passant capture and restores the captured pawn", () => {
+  const position = Position.empty();
+
+  position.putPiece(36, Piece.WhitePawn); // e5
+  position.putPiece(35, Piece.BlackPawn); // d5
+
+  position.sideToMove = Color.White;
+  position.enPassantSquare = 43; // d6
+
+  const original = position.clone();
+
+  const move = new Move(36, 43, MoveType.EN_PASSANT);
+
+  const undoState = makeMove(position, move);
+  unmakeMove(position, move, undoState);
+
+  assert.equal(position.equals(original), true);
+});
+
+test("unmakes a promotion and restores the pawn", () => {
+  const position = Position.empty();
+
+  position.putPiece(48, Piece.WhitePawn); // a7
+  position.sideToMove = Color.White;
+
+  const original = position.clone();
+
+  const move = new Move(
+    48,
+    56,
+    MoveType.PROMOTION,
+    Piece.WhiteQueen
+  );
+
+  const undoState = makeMove(position, move);
+  unmakeMove(position, move, undoState);
+
+  assert.equal(position.equals(original), true);
+});
+
+test("unmakes kingside castling and restores king and rook", () => {
+  const position = Position.empty();
+
+  position.putPiece(4, Piece.WhiteKing); // e1
+  position.putPiece(7, Piece.WhiteRook); // h1
+
+  position.sideToMove = Color.White;
+  position.castlingRights = CastlingRights.WhiteKingSide;
+
+  const original = position.clone();
+
+  const move = new Move(4, 6, MoveType.CASTLE); // e1 -> g1
+
+  const undoState = makeMove(position, move);
+  unmakeMove(position, move, undoState);
+
+  assert.equal(position.equals(original), true);
+});
+
+test("unmakes a promotion capture and restores the pawn and captured piece", () => {
+  const position = Position.empty();
+
+  position.putPiece(48, Piece.WhitePawn);  // a7
+  position.putPiece(57, Piece.BlackRook);  // b8
+
+  position.sideToMove = Color.White;
+
+  const original = position.clone();
+
+  const move = new Move(
+    48,
+    57,
+    MoveType.PROMOTION,
+    Piece.WhiteQueen
+  );
+
+  const undoState = makeMove(position, move);
+  unmakeMove(position, move, undoState);
+
+  assert.equal(position.equals(original), true);
 });

@@ -4,8 +4,24 @@ import { Move, MoveType } from "./move.js";
 import { Position } from "../core/position.js";
 import { CastlingRights } from "../core/castling.js";
 
-export function makeMove(position: Position, move: Move): void {
-  const movingColor = position.sideToMove;
+export interface UndoState {
+  capturedPiece: Piece;
+  castlingRights: CastlingRights;
+  enPassantSquare: number;
+  halfmoveClock: number;
+  fullmoveNumber: number;
+}
+
+export function makeMove(position: Position, move: Move): UndoState {
+  
+  const undoState: UndoState = {
+  capturedPiece: position.pieceAt(move.to),
+  castlingRights: position.castlingRights,
+  enPassantSquare: position.enPassantSquare,
+  halfmoveClock: position.halfmoveClock,
+  fullmoveNumber: position.fullmoveNumber,
+};
+    const movingColor = position.sideToMove;
   const movingPiece = position.pieceAt(move.from);
 
 if (move.type === MoveType.EN_PASSANT) {
@@ -96,4 +112,63 @@ if (movingPieceType === PieceType.Rook) {
   } else {
     position.halfmoveClock += 1;
   }
+  
+  return undoState;
+}
+
+export function unmakeMove(
+  position: Position,
+  move: Move,
+  undoState: UndoState
+): void {
+  position.movePiece(move.to, move.from);
+
+  if (move.type === MoveType.CASTLE) {
+  if (move.to === 6) {
+    position.movePiece(5, 7);
+  } else if (move.to === 62) {
+    position.movePiece(61, 63);
+  } else if (move.to === 2) {
+    position.movePiece(3, 0);
+  } else if (move.to === 58) {
+    position.movePiece(59, 56);
+  }
+}
+
+  if (move.type === MoveType.PROMOTION) {
+  position.removePiece(move.from);
+
+  const pawn =
+    position.sideToMove === Color.Black
+      ? Piece.WhitePawn
+      : Piece.BlackPawn;
+
+  position.putPiece(move.from, pawn);
+}
+
+if (move.type === MoveType.EN_PASSANT) {
+  const capturedPawnSquare =
+    position.sideToMove === Color.Black
+      ? move.to - 8
+      : move.to + 8;
+
+  const capturedPawn =
+    position.sideToMove === Color.Black
+      ? Piece.BlackPawn
+      : Piece.WhitePawn;
+
+  position.putPiece(capturedPawnSquare, capturedPawn);
+} else if (undoState.capturedPiece !== Piece.None) {
+  position.putPiece(move.to, undoState.capturedPiece);
+}
+
+  position.sideToMove =
+    position.sideToMove === Color.White
+      ? Color.Black
+      : Color.White;
+
+  position.castlingRights = undoState.castlingRights;
+  position.enPassantSquare = undoState.enPassantSquare;
+  position.halfmoveClock = undoState.halfmoveClock;
+  position.fullmoveNumber = undoState.fullmoveNumber;
 }

@@ -5,6 +5,12 @@ import { MoveGenerator } from "../src/move/move-generator.js";
 import { Position } from "../src/core/position.js";
 import { Piece } from "../src/core/piece.js";
 import { Color } from "../src/core/color.js";
+import { parseFen } from "../src/core/fen.js";
+import { makeMove } from "../src/move/make-move.js";
+/* import { MoveType } from "../src/move/move.js"; */
+import { Move, MoveType } from "../src/move/move.js";
+import { CastlingRights } from "../src/core/castling.js";
+
 
 test("initial position generates 20 moves", () => {
   const position = Position.initial();
@@ -458,6 +464,207 @@ test("generates pseudo-legal king moves while in check", () => {
 
   assert.equal(
     moves.some((move) => move.from === 4),
+    true
+  );
+});
+
+test("does not allow a pinned piece to expose its king to check", () => {
+  const position = Position.empty();
+
+  position.putPiece(4, Piece.WhiteKing);   // e1
+  position.putPiece(12, Piece.WhiteRook);  // e2
+  position.putPiece(60, Piece.BlackKing);  // e8
+  position.putPiece(20, Piece.BlackRook);  // e3
+
+  const moves = MoveGenerator.generateLegalMoves(position);
+
+  assert.equal(
+    moves.some(move => move.from === 12 && move.to === 13),
+    false
+  );
+});
+
+test("does not allow the king to move into check", () => {
+  const position = Position.empty();
+
+  position.putPiece(4, Piece.WhiteKing);   // e1
+  position.putPiece(60, Piece.BlackKing);  // e8
+  position.putPiece(21, Piece.BlackRook);  // f3
+
+  const moves = MoveGenerator.generateLegalMoves(position);
+
+  assert.equal(
+    moves.some(move => move.from === 4 && move.to === 13),
+    false
+  );
+});
+
+test("when in check, only moves that escape check are legal", () => {
+  const position = Position.empty();
+
+  position.putPiece(4, Piece.WhiteKing);    // e1
+  position.putPiece(11, Piece.WhiteRook);   // d2
+  position.putPiece(60, Piece.BlackKing);   // e8
+  position.putPiece(20, Piece.BlackRook);   // e3
+
+  const moves = MoveGenerator.generateLegalMoves(position);
+
+  // King cannot move to e2 because the checking rook controls e2.
+  assert.equal(
+    moves.some(move => move.from === 4 && move.to === 12),
+    false
+  );
+
+  // Rook can block the check: d2 -> e2.
+  assert.equal(
+    moves.some(move => move.from === 11 && move.to === 12),
+    true
+  );
+});
+
+test("detects checkmate", () => {
+  const position = Position.empty();
+
+  position.putPiece(7, Piece.WhiteKing);     // h1
+  position.putPiece(60, Piece.BlackKing);    // e8
+  position.putPiece(14, Piece.BlackQueen);   // g2
+  position.putPiece(15, Piece.BlackRook);    // h2
+
+  position.sideToMove = Color.White;
+
+  assert.equal(
+    MoveGenerator.generateLegalMoves(position).length,
+    0
+  );
+
+  assert.equal(
+    MoveGenerator.isKingInCheck(position, Color.White),
+    true
+  );
+});
+
+test("detects stalemate", () => {
+  const position = Position.empty();
+
+  position.putPiece(7, Piece.WhiteKing);     // h1
+  position.putPiece(13, Piece.BlackKing);    // f2
+  position.putPiece(22, Piece.BlackQueen);   // g3
+
+  position.sideToMove = Color.White;
+
+  assert.equal(
+    MoveGenerator.generateLegalMoves(position).length,
+    0
+  );
+
+  assert.equal(
+    MoveGenerator.isKingInCheck(position, Color.White),
+    false
+  );
+});
+
+test("isCheckmate returns true for checkmate", () => {
+  const position = Position.empty();
+
+  position.putPiece(7, Piece.WhiteKing);     // h1
+  position.putPiece(60, Piece.BlackKing);    // e8
+  position.putPiece(14, Piece.BlackQueen);   // g2
+  position.putPiece(15, Piece.BlackRook);    // h2
+
+  position.sideToMove = Color.White;
+
+  assert.equal(
+    MoveGenerator.isCheckmate(position),
+    true
+  );
+});
+
+test("isStalemate returns true for stalemate", () => {
+  const position = Position.empty();
+
+  position.putPiece(7, Piece.WhiteKing);     // h1
+  position.putPiece(13, Piece.BlackKing);    // f2
+  position.putPiece(22, Piece.BlackQueen);   // g3
+
+  position.sideToMove = Color.White;
+
+  assert.equal(
+    MoveGenerator.isStalemate(position),
+    true
+  );
+});
+
+test("generates white king-side castling", () => {
+  const position = parseFen(
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+  );
+
+  const moves = MoveGenerator.generateLegalMoves(position);
+
+  assert.equal(
+    moves.some(move => move.from === 4 && move.to === 6),
+    true
+  );
+});
+
+test("generates white queen-side castling", () => {
+  const position = parseFen(
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+  );
+
+  const moves = MoveGenerator.generateLegalMoves(position);
+
+  assert.equal(
+    moves.some(move => move.from === 4 && move.to === 2),
+    true
+  );
+});
+
+test("generates en passant capture after a double pawn move", () => {
+  const position = Position.empty();
+
+  position.putPiece(4, Piece.WhiteKing);   // e1
+  position.putPiece(60, Piece.BlackKing);  // e8
+
+  position.putPiece(8, Piece.WhitePawn);   // a2
+  position.putPiece(25, Piece.BlackPawn);  // b4
+
+  position.sideToMove = Color.White;
+
+  const whiteMove = new Move(8, 24); // a2-a4
+  makeMove(position, whiteMove);
+
+  const blackMoves = MoveGenerator.generateLegalMoves(position);
+
+  assert.equal(
+    blackMoves.some(
+      move =>
+        move.from === 25 &&
+        move.to === 16 &&
+        move.type === MoveType.EN_PASSANT
+    ),
+    true
+  );
+});
+
+test("generates black queen-side castling", () => {
+  const position = Position.empty();
+
+  position.putPiece(60, Piece.BlackKing); // e8
+  position.putPiece(56, Piece.BlackRook); // a8
+
+  position.sideToMove = Color.Black;
+  position.castlingRights = CastlingRights.BlackQueenSide;
+
+  const moves = MoveGenerator.generateLegalMoves(position);
+
+  assert.equal(
+    moves.some(
+      move =>
+        move.from === 60 &&
+        move.to === 58 &&
+        move.type === MoveType.CASTLE
+    ),
     true
   );
 });
