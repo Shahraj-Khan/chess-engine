@@ -106,3 +106,19 @@ test("black knight gets a bonus on black's side of the center", () => {
 
   assert.ok(evaluate(position) < -320);
 });
+
+test("bishop gets a bonus for being active in the center", () => {
+  const position = parseFen(
+    "4k3/8/8/3B4/8/8/8/4K3 w - - 0 1"
+  );
+
+  assert.ok(evaluate(position) > 330);
+});
+
+test("black bishop gets a bonus for being active in the center", () => {
+  const position = parseFen(
+    "4k3/8/3b4/8/8/8/8/4K3 b - - 0 1"
+  );
+
+  assert.ok(evaluate(position) < -330);
+});

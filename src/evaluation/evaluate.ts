@@ -34,6 +34,28 @@ const KNIGHT_POSITION_BONUS: Record<number, number> = {
   45: 20, // f6
 };
 
+const BISHOP_POSITION_BONUS: Record<number, number> = {
+  18: 10, // c3
+  19: 15, // d3
+  20: 15, // e3
+  21: 10, // f3
+
+  26: 15, // c4
+  27: 20, // d4
+  28: 20, // e4
+  29: 15, // f4
+
+  34: 15, // c5
+  35: 20, // d5
+  36: 20, // e5
+  37: 15, // f5
+
+  42: 10, // c6
+  43: 15, // d6
+  44: 15, // e6
+  45: 10, // f6
+};
+
 export function evaluate(position: Position): number {
   let score = 0;
 
@@ -50,6 +72,10 @@ let bonus = 0;
 
 if (pieceType(piece) === PieceType.Knight) {
   bonus = KNIGHT_POSITION_BONUS[square] ?? 0;
+}
+
+if (pieceType(piece) === PieceType.Bishop) {
+  bonus = BISHOP_POSITION_BONUS[square] ?? 0;
 }
 
 if (pieceColor(piece) === Color.White) {
