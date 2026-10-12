@@ -122,3 +122,51 @@ test("black bishop gets a bonus for being active in the center", () => {
 
   assert.ok(evaluate(position) < -330);
 });
+
+test("rook gets a bonus for being active on an open file", () => {
+  const position = parseFen(
+    "4k3/8/8/8/8/8/8/R3K3 w - - 0 1"
+  );
+
+  assert.ok(evaluate(position) > 500);
+});
+
+test("black rook gets a positional bonus", () => {
+  const position = parseFen(
+    "4k3/8/8/8/8/8/8/4K2r b - - 0 1"
+  );
+
+  assert.ok(evaluate(position) < -500);
+});
+
+test("queen gets a small bonus for being active in the center", () => {
+  const position = parseFen(
+    "4k3/8/8/3Q4/8/8/8/4K3 w - - 0 1"
+  );
+
+  assert.ok(evaluate(position) > 900);
+});
+
+test("black queen gets a positional bonus in the center", () => {
+  const position = parseFen(
+    "4k3/8/8/3q4/8/8/8/4K3 b - - 0 1"
+  );
+
+  assert.ok(evaluate(position) < -900);
+});
+
+test("king gets a safety bonus when castled", () => {
+  const position = parseFen(
+    "r3k2r/pppq1ppp/2np1n2/8/8/5N2/PPPP1PPP/RNBQ1RK1 w - - 0 1"
+  );
+
+  assert.ok(evaluate(position) > 0);
+});
+
+test("exposed king gets a safety penalty", () => {
+  const position = parseFen(
+    "r3k2r/pppq1ppp/2np1n2/8/8/5N2/PPPP1PPP/RNBQK2R w - - 0 1"
+  );
+
+  assert.ok(evaluate(position) < 0);
+});
