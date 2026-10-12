@@ -1,5 +1,11 @@
 import { Color } from "../core/color.js";
-import { Piece, pieceType, PieceType } from "../core/piece.js";
+import {
+  Piece,
+  PieceType,
+  makePiece,
+  pieceType,
+} from "../core/piece.js";
+import type { NonEmptyPieceType } from "../core/piece.js";
 import { Move, MoveType } from "./move.js";
 import { Position } from "../core/position.js";
 import { CastlingRights } from "../core/castling.js";
@@ -33,9 +39,12 @@ if (move.type === MoveType.EN_PASSANT) {
 
   const capturedPiece = position.movePiece(move.from, move.to);
 
-  if (move.type === MoveType.PROMOTION) {
+if (move.type === MoveType.PROMOTION) {
   position.removePiece(move.to);
-  position.putPiece(move.to, move.promotionPiece as Piece);
+  position.putPiece(
+    move.to,
+    makePiece(movingColor, move.promotionPiece as NonEmptyPieceType)
+  );
 }
 
 if (move.type === MoveType.CASTLE) {

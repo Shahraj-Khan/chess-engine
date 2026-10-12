@@ -51,13 +51,28 @@ private static generatePawnMoves(
 
   const oneStep = square + direction;
 
+  const addPromotionMoves = (from: number, to: number) => {
+  moves.push(
+    new Move(from, to, MoveType.PROMOTION, PieceType.Queen),
+    new Move(from, to, MoveType.PROMOTION, PieceType.Rook),
+    new Move(from, to, MoveType.PROMOTION, PieceType.Bishop),
+    new Move(from, to, MoveType.PROMOTION, PieceType.Knight)
+  );
+};
+
   // One-square move
   if (
     oneStep >= 0 &&
     oneStep < 64 &&
     position.isEmpty(oneStep)
   ) {
+  const oneStepRank = Math.floor(oneStep / 8);
+
+  if (oneStepRank === 0 || oneStepRank === 7) {
+    addPromotionMoves(square, oneStep);
+  } else {
     moves.push(new Move(square, oneStep));
+  }
 
     // Two-square move from starting rank
     const rank = Math.floor(square / 8);
@@ -85,12 +100,16 @@ private static generatePawnMoves(
       const targetSquare = captureRank * 8 + (file - 1);
       const targetPiece = position.pieceAt(targetSquare);
 
-      if (
-        targetPiece !== Piece.None &&
-        pieceColor(targetPiece) !== position.sideToMove
-      ) {
-        moves.push(new Move(square, targetSquare));
-      }
+if (
+  targetPiece !== Piece.None &&
+  pieceColor(targetPiece) !== position.sideToMove
+) {
+  if (captureRank === 0 || captureRank === 7) {
+    addPromotionMoves(square, targetSquare);
+  } else {
+    moves.push(new Move(square, targetSquare));
+  }
+}
 
       if (position.enPassantSquare === targetSquare) {
         moves.push(
@@ -104,12 +123,16 @@ private static generatePawnMoves(
       const targetSquare = captureRank * 8 + (file + 1);
       const targetPiece = position.pieceAt(targetSquare);
 
-      if (
-        targetPiece !== Piece.None &&
-        pieceColor(targetPiece) !== position.sideToMove
-      ) {
-        moves.push(new Move(square, targetSquare));
-      }
+if (
+  targetPiece !== Piece.None &&
+  pieceColor(targetPiece) !== position.sideToMove
+) {
+  if (captureRank === 0 || captureRank === 7) {
+    addPromotionMoves(square, targetSquare);
+  } else {
+    moves.push(new Move(square, targetSquare));
+  }
+}
 
       if (position.enPassantSquare === targetSquare) {
         moves.push(

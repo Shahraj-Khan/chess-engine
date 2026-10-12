@@ -131,3 +131,103 @@ test("debug Kiwipete perft depth 1 moves", () => {
 
   assert.equal(moves.length, 48);
 });
+
+test("perft position 3", () => {
+  const position = parseFen(
+    "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"
+  );
+
+  assert.equal(perft(position, 1), 14);
+  assert.equal(perft(position, 2), 191);
+  assert.equal(perft(position, 3), 2812);
+});
+
+test("debug perft position 4 legal moves", () => {
+  const position = parseFen(
+    "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1"
+  );
+
+  const moves = MoveGenerator.generateLegalMoves(position);
+
+  console.log("Position 4 legal moves:", moves.length);
+
+  for (const move of moves) {
+    console.log(`${move.from}->${move.to}`, move.type);
+  }
+
+  assert.equal(moves.length, 6);
+});
+
+test("debug position after d2-d4 Qa3-e3", () => {
+  const position = parseFen(
+    "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1"
+  );
+
+  const whiteMove = MoveGenerator.generateLegalMoves(position)
+    .find((move) => move.from === 11 && move.to === 27)!;
+
+  makeMove(position, whiteMove);
+
+  const blackMove = MoveGenerator.generateLegalMoves(position)
+    .find((move) => move.from === 16 && move.to === 20)!;
+
+  makeMove(position, blackMove);
+
+  console.log("SIDE TO MOVE:", position.sideToMove);
+  console.log("BOARD:");
+  console.log(position.toString());
+
+  const whiteMoves = MoveGenerator.generateLegalMoves(position);
+
+  console.log(
+    "WHITE LEGAL MOVES:",
+    whiteMoves.map(
+      (move) =>
+        `${move.from}->${move.to} type=${move.type} promotion=${move.promotionPiece}`
+    )
+  );
+});
+
+test("perft position 4", () => {
+const position = parseFen(
+  "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1"
+);
+assert.equal(perft(position, 1), 6);
+assert.equal(perft(position, 2), 264);
+for (const move of MoveGenerator.generateLegalMoves(position)) {
+  const child = position.clone();
+  makeMove(child, move);
+
+  console.log(
+    `DIVIDE ${move.from}->${move.to}: ${perft(child, 2)}`
+  );
+}
+assert.equal(perft(position, 3), 9467);
+});
+
+test("perft position 5", () => {
+  const position = parseFen(
+    "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8"
+  );
+
+  assert.equal(perft(position, 1), 44);
+  assert.equal(perft(position, 2), 1486);
+  assert.equal(perft(position, 3), 62379);
+});
+
+
+const position = parseFen(
+  "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
+);
+
+const moves = MoveGenerator.generateLegalMoves(position);
+
+console.log(
+  moves.map(
+    (move) => `${move.from}-${move.to}`
+  )
+);
+
+assert.equal(perft(position, 1), 46);
+assert.equal(perft(position, 2), 2079);
+assert.equal(perft(position, 3), 89890);
