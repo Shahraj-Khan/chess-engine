@@ -117,8 +117,10 @@ const QUEEN_POSITION_BONUS: Record<number, number> = {
 };
 
 
+
 export function evaluate(position: Position): number {
   let score = 0;
+  let pieceCount = 0;
 
   for (let square = 0; square < 64; square++) {
     const piece = position.pieceAt(square);
@@ -127,57 +129,46 @@ export function evaluate(position: Position): number {
       continue;
     }
 
-const value = PIECE_VALUES[pieceType(piece)];
+    pieceCount++;
 
-let bonus = 0;
+    const type = pieceType(piece);
+    const value = PIECE_VALUES[type];
 
-if (pieceType(piece) === PieceType.Knight) {
-  bonus = KNIGHT_POSITION_BONUS[square] ?? 0;
-}
+    let bonus = 0;
 
-if (pieceType(piece) === PieceType.Bishop) {
-  bonus = BISHOP_POSITION_BONUS[square] ?? 0;
-}
+    if (type === PieceType.Knight) {
+      bonus = KNIGHT_POSITION_BONUS[square] ?? 0;
+    } else if (type === PieceType.Bishop) {
+      bonus = BISHOP_POSITION_BONUS[square] ?? 0;
+    } else if (type === PieceType.Rook) {
+      bonus = ROOK_POSITION_BONUS[square] ?? 0;
+    } else if (type === PieceType.Queen) {
+      bonus = QUEEN_POSITION_BONUS[square] ?? 0;
+    }
 
-if (pieceType(piece) === PieceType.Rook) {
-  bonus = ROOK_POSITION_BONUS[square] ?? 0;
-}
-if (pieceType(piece) === PieceType.Queen) {
-  bonus = QUEEN_POSITION_BONUS[square] ?? 0;
-}
-
-
-if (pieceColor(piece) === Color.White) {
-  score += value + bonus;
-} else {
-  score -= value + bonus;
-}
-  }
-
-const kingSafety = evaluateKingSafety(position);
-
-score += kingSafety;
-
-return score;
-
-}
-
-function evaluateKingSafety(position: Position): number {
-  let pieceCount = 0;
-
-  for (let square = 0; square < 64; square++) {
-    if (position.pieceAt(square) !== Piece.None) {
-      pieceCount++;
+    if (pieceColor(piece) === Color.White) {
+      score += value + bonus;
+    } else {
+      score -= value + bonus;
     }
   }
 
+  score += evaluateKingSafety(position, pieceCount);
+
+  return score;
+}
+
+
+function evaluateKingSafety(
+  position: Position,
+  pieceCount: number
+): number {
   if (pieceCount <= 10) {
     return 0;
   }
 
   const whiteKingSafety =
     position.pieceAt(6) === Piece.WhiteKing ? 30 : 0;
-
 
   const whiteKingExposed =
     position.pieceAt(4) === Piece.WhiteKing &&

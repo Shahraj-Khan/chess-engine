@@ -11,6 +11,22 @@ import {
 } from "./transposition-table.js";
 import { computeZobristHash } from "./zobrist.js";
 
+export interface SearchStats {
+  nodes: number;
+  ttHits: number;
+  ttCutoffs: number;
+  betaCutoffs: number;
+}
+
+export function createSearchStats(): SearchStats {
+  return {
+    nodes: 0,
+    ttHits: 0,
+    ttCutoffs: 0,
+    betaCutoffs: 0,
+  };
+}
+
 const MATE_SCORE = Infinity;
 
 const defaultTable = new TranspositionTable();
@@ -20,14 +36,24 @@ export function negamax(
   depth: number,
   alpha: number = -Infinity,
   beta: number = Infinity,
-  table: TranspositionTable = defaultTable
+  table: TranspositionTable = defaultTable,
+  stats?: SearchStats
 ): number {
+  if (stats) {
+    stats.nodes++;
+  }
+
   const originalAlpha = alpha;
+  const originalBeta = beta;
   const hash = computeZobristHash(position);
 
   const cached = table.probe(hash);
 
   if (cached && cached.depth >= depth) {
+    if (stats) {
+      stats.ttHits++;
+    }
+
     if (cached.bound === TTBound.Exact) {
       return cached.score;
     }
@@ -39,6 +65,10 @@ export function negamax(
     }
 
     if (alpha >= beta) {
+      if (stats) {
+        stats.ttCutoffs++;
+      }
+
       return cached.score;
     }
   }
@@ -69,7 +99,8 @@ export function negamax(
       depth - 1,
       -beta,
       -alpha,
-      table
+      table,
+      stats
     );
 
     unmakeMove(position, move, undoState);
@@ -82,6 +113,10 @@ export function negamax(
     alpha = Math.max(alpha, score);
 
     if (alpha >= beta) {
+      if (stats) {
+        stats.betaCutoffs++;
+      }
+
       break;
     }
   }
@@ -90,7 +125,7 @@ export function negamax(
 
   if (bestScore <= originalAlpha) {
     bound = TTBound.UpperBound;
-  } else if (bestScore >= beta) {
+  } else if (bestScore >= originalBeta) {
     bound = TTBound.LowerBound;
   }
 
@@ -108,7 +143,8 @@ export function negamax(
 export function findBestMove(
   position: Position,
   depth: number,
-  table: TranspositionTable = defaultTable
+  table: TranspositionTable = defaultTable,
+  stats?: SearchStats
 ): Move | null {
   const moves = MoveGenerator.generateLegalMoves(position);
 
@@ -120,7 +156,6 @@ export function findBestMove(
   const cached = table.probe(hash);
 
   const orderedMoves = orderMoves(position, moves);
-
 
   if (cached?.bestMove) {
     const index = orderedMoves.findIndex(
@@ -135,20 +170,20 @@ export function findBestMove(
     }
   }
 
-
   let bestMove: Move | null = orderedMoves[0] ?? null;
   let bestScore = -Infinity;
 
   for (const move of orderedMoves) {
     const undoState = makeMove(position, move);
 
-    const score = -negamax(
-      position,
-      depth - 1,
-      -Infinity,
-      -bestScore,
-      table
-    );
+const score = -negamax(
+  position,
+  depth - 1,
+  -Infinity,
+  -bestScore,
+  table,
+  stats
+);
 
     unmakeMove(position, move, undoState);
 

@@ -7,12 +7,15 @@
   "engines": {
     "node": ">=22"
   },
-  "scripts": {
-    "clean": "node --input-type=module -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });\"",
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run clean && npm run build && node --test --enable-source-maps \"dist/tests/**/*.test.js\""
-  },
+
+"scripts": {
+  "clean": "node --input-type=module -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true});\"",
+  "build": "tsc -p tsconfig.json",
+  "typecheck": "tsc -p tsconfig.json --noEmit",
+  "test": "npm run clean && npm run build && node --test --enable-source-maps \"dist/tests/**/*.test.js\"",
+  "benchmark": "npm run clean && npm run build && node --enable-source-maps dist/tests/benchmark.js",
+  "uci": "npm run build && node dist/src/uci/uci.js"
+},
   "devDependencies": {
     "@types/node": "^26.6.5",
     "typescript": "^7.0.2"
