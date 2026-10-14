@@ -1,3 +1,4 @@
+
 import { Position } from "../core/position.js";
 import { Color } from "../core/color.js";
 import { Piece } from "../core/piece.js";
@@ -5,12 +6,22 @@ import { MoveGenerator } from "../move/move-generator.js";
 import { makeMove, unmakeMove } from "../move/make-move.js";
 import { evaluate } from "../evaluation/evaluate.js";
 import { MoveType } from "../move/move.js";
+import {
+  type SearchControl,
+  isSearchStopped,
+  SearchStoppedError,
+} from "./search-control.js";
 
 export function quiescence(
   position: Position,
   alpha: number = -Infinity,
-  beta: number = Infinity
+  beta: number = Infinity,
+  control?: SearchControl
 ): number {
+  if (isSearchStopped(control)) {
+    throw new SearchStoppedError();
+  }
+
   const inCheck = MoveGenerator.isKingInCheck(
     position,
     position.sideToMove
@@ -49,11 +60,18 @@ export function quiescence(
       });
 
   for (const move of tacticalMoves) {
+    if (isSearchStopped(control)) {
+      throw new SearchStoppedError();
+    }
+
     const undoState = makeMove(position, move);
+    let score: number;
 
-    const score = -quiescence(position, -beta, -alpha);
-
-    unmakeMove(position, move, undoState);
+    try {
+      score = -quiescence(position, -beta, -alpha, control);
+    } finally {
+      unmakeMove(position, move, undoState);
+    }
 
     if (score >= beta) {
       return beta;

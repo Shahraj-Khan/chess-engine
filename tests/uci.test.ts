@@ -228,3 +228,34 @@ test("stalemate position returns bestmove 0000", async () => {
     assert.match(output, /bestmove 0000/);
   });
 });
+
+
+test("engine returns a bestmove for go movetime", async () => {
+  await withEngine(async (engine) => {
+    const output = await sendAndWait(
+      engine,
+      "position startpos\ngo movetime 100",
+      /bestmove (?:[a-h][1-8][a-h][1-8][qrbn]?|0000)/,
+    );
+
+    assert.match(
+      output,
+      /bestmove (?:[a-h][1-8][a-h][1-8][qrbn]?|0000)/,
+    );
+  });
+});
+
+
+
+test("go movetime does not silently fall back to default depth", async () => {
+  await withEngine(async (engine) => {
+    const output = await sendAndWait(
+      engine,
+      "position startpos\ngo movetime 100",
+      /bestmove (?:[a-h][1-8][a-h][1-8][qrbn]?|0000)/,
+    );
+
+    assert.doesNotMatch(output, /info string Unknown command: go movetime/);
+  });
+});
+

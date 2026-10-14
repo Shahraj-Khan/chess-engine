@@ -10,6 +10,13 @@ import {
   TTBound,
 } from "./transposition-table.js";
 import { computeZobristHash } from "./zobrist.js";
+import {
+  type SearchControl,
+  isSearchStopped,
+  SearchStoppedError,
+} from "./search-control.js";
+
+
 
 export interface SearchStats {
   nodes: number;
@@ -37,8 +44,14 @@ export function negamax(
   alpha: number = -Infinity,
   beta: number = Infinity,
   table: TranspositionTable = defaultTable,
-  stats?: SearchStats
+  stats?: SearchStats,
+  control?: SearchControl
 ): number {
+  
+  if (isSearchStopped(control)) {
+  throw new SearchStoppedError();
+}
+
   if (stats) {
     stats.nodes++;
   }
@@ -74,7 +87,7 @@ export function negamax(
   }
 
   if (depth <= 0) {
-    return quiescence(position, alpha, beta);
+    return quiescence(position, alpha, beta, control);
   }
 
   let bestScore = -Infinity;
@@ -92,18 +105,28 @@ export function negamax(
   }
 
   for (const move of moves) {
-    const undoState = makeMove(position, move);
 
-    const score = -negamax(
-      position,
-      depth - 1,
-      -beta,
-      -alpha,
-      table,
-      stats
-    );
+if (isSearchStopped(control)) {
+  throw new SearchStoppedError();
+}
 
-    unmakeMove(position, move, undoState);
+const undoState = makeMove(position, move);
+let score: number;
+
+try {
+  score = -negamax(
+    position,
+    depth - 1,
+    -beta,
+    -alpha,
+    table,
+    stats,
+    control
+  );
+} finally {
+  unmakeMove(position, move, undoState);
+}
+
 
     if (score > bestScore) {
       bestScore = score;
@@ -144,8 +167,14 @@ export function findBestMove(
   position: Position,
   depth: number,
   table: TranspositionTable = defaultTable,
-  stats?: SearchStats
+  stats?: SearchStats,
+  control?: SearchControl
 ): Move | null {
+  
+  if (isSearchStopped(control)) {
+  throw new SearchStoppedError();
+}
+  
   const moves = MoveGenerator.generateLegalMoves(position);
 
   if (moves.length === 0) {
@@ -174,18 +203,27 @@ export function findBestMove(
   let bestScore = -Infinity;
 
   for (const move of orderedMoves) {
-    const undoState = makeMove(position, move);
 
-const score = -negamax(
-  position,
-  depth - 1,
-  -Infinity,
-  -bestScore,
-  table,
-  stats
-);
+if (isSearchStopped(control)) {
+  throw new SearchStoppedError();
+}
 
-    unmakeMove(position, move, undoState);
+const undoState = makeMove(position, move);
+let score: number;
+
+try {
+  score = -negamax(
+    position,
+    depth - 1,
+    -Infinity,
+    -bestScore,
+    table,
+    stats,
+    control
+  );
+} finally {
+  unmakeMove(position, move, undoState);
+}
 
     if (score > bestScore) {
       bestScore = score;

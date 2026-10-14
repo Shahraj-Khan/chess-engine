@@ -4,6 +4,10 @@ import { Move } from "../move/move.js";
 import { MoveGenerator } from "../move/move-generator.js";
 import { findBestMove } from "./negamax.js";
 import { TranspositionTable } from "./transposition-table.js";
+import {
+  type SearchControl,
+  SearchStoppedError,
+} from "./search-control.js";
 
 export interface IterativeDeepeningResult {
   bestMove: Move | null;
@@ -12,7 +16,8 @@ export interface IterativeDeepeningResult {
 
 export function iterativeDeepening(
   position: Position,
-  maxDepth: number
+  maxDepth: number,
+  control?: SearchControl
 ): IterativeDeepeningResult {
   const legalMoves = MoveGenerator.generateLegalMoves(position);
 
@@ -25,15 +30,30 @@ export function iterativeDeepening(
 
   const table = new TranspositionTable();
 
+  // Keep a legal fallback if the search stops before depth 1 completes.
   let bestMove: Move | null = legalMoves[0] ?? null;
   let completedDepth = 0;
 
   for (let depth = 1; depth <= maxDepth; depth++) {
-    const move = findBestMove(position, depth, table);
+    try {
+      const move = findBestMove(
+        position,
+        depth,
+        table,
+        undefined,
+        control
+      );
 
-    if (move !== null) {
-      bestMove = move;
-      completedDepth = depth;
+      if (move !== null) {
+        bestMove = move;
+        completedDepth = depth;
+      }
+    } catch (error) {
+      if (error instanceof SearchStoppedError) {
+        break;
+      }
+
+      throw error;
     }
   }
 
