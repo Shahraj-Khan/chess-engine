@@ -131,13 +131,32 @@ export function startUci(): void {
         position = Position.initial();
       } else if (command.startsWith("position ")) {
         setPosition(command);
-      } else if (command.startsWith("go")) {
+      } 
+      else if (command === "go" || command.startsWith("go ")) {
         const tokens = command.split(/\s+/);
         const depthIndex = tokens.indexOf("depth");
-        const depth =
-          depthIndex !== -1
-            ? Number(tokens[depthIndex + 1])
-            : 3;
+        const movetimeIndex = tokens.indexOf("movetime");
+
+        let depth = 3;
+        let control: { deadline?: number } | undefined;
+
+        if (movetimeIndex !== -1) {
+          const movetime = Number(tokens[movetimeIndex + 1]);
+
+          if (
+            !Number.isInteger(movetime) ||
+            movetime < 1
+          ) {
+            console.log("info string Invalid movetime");
+            console.log("bestmove 0000");
+            return;
+          }
+
+          control = { deadline: Date.now() + movetime };
+          depth = 64;
+        } else if (depthIndex !== -1) {
+          depth = Number(tokens[depthIndex + 1]);
+        }
 
         if (!Number.isInteger(depth) || depth < 1) {
           console.log("info string Invalid search depth");
@@ -145,15 +164,24 @@ export function startUci(): void {
           return;
         }
 
-        const result = iterativeDeepening(position, depth);
+const searchStart = performance.now();
+
+const result = iterativeDeepening(position, depth, control);
+
+const searchElapsed = performance.now() - searchStart;
+
+console.log(
+  `info string Search time: ${searchElapsed.toFixed(1)} ms`
+);
+
 
         console.log(`info depth ${result.completedDepth}`);
-
         console.log(
           `bestmove ${
             result.bestMove ? moveToUci(result.bestMove) : "0000"
           }`,
         );
+
       } else if (command === "quit") {
         rl.close();
       } else if (command !== "") {

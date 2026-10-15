@@ -1,0 +1,110 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.app__main {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--page-gutter) 32px;
+}
+
+/* ---------- Layout ----------
+   Mobile:  one column  (board first, then status, moves, engine, setup)
+   Tablet:  board + one side column
+   Desktop: left rail | board | right rail                                */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.rail {
+  display: contents;
+}
+
+.stage {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+}
+
+.slot {
+  min-width: 0;
+}
+
+.slot--status {
+  order: 1;
+}
+
+.slot--history {
+  order: 2;
+}
+
+.slot--engine {
+  order: 3;
+}
+
+.slot--setup {
+  order: 4;
+}
+
+@media (min-width: 760px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+    gap: 18px 22px;
+  }
+
+  .stage {
+    grid-column: 1;
+    grid-row: 1 / span 4;
+    width: min(100%, max(380px, calc(100dvh - 400px)));
+    max-width: 700px;
+    gap: 12px;
+  }
+
+  .slot {
+    grid-column: 2;
+  }
+}
+
+@media (min-width: 1180px) {
+  .layout {
+    grid-template-columns: minmax(260px, 300px) minmax(0, 1fr) minmax(310px, 360px);
+    gap: 24px;
+  }
+
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .rail--left {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .stage {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .rail--right {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .slot {
+    grid-column: auto;
+    order: 0;
+  }
+}

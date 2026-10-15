@@ -1,0 +1,41 @@
+.captured {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.captured__pieces {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.captured__pieces--w {
+  color: #ece5cf;
+}
+
+.captured__pieces--b {
+  color: #6f7e66;
+}
+
+.captured__piece {
+  width: 18px;
+  height: 18px;
+  margin-left: 2px;
+  animation: fade-in var(--dur-med) var(--ease-out) both;
+}
+
+/* Overlap repeated pieces so a run of pawns reads as a stack. */
+.captured__piece[data-grouped] {
+  margin-left: -8px;
+}
+
+.captured__lead {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lime);
+  font-variant-numeric: tabular-nums;
+}

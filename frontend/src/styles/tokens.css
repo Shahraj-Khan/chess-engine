@@ -1,0 +1,58 @@
+:root {
+  color-scheme: dark;
+
+  /* Typography */
+  --font-display: 'Space Grotesk Variable', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'DM Sans Variable', 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+
+  /* Surfaces: near-black with a forest/olive undertone */
+  --bg-0: #070a07;
+  --bg-1: #0b100b;
+  --surface-1: #101710;
+  --surface-2: #162015;
+  --surface-3: #1d291b;
+  --line: rgba(200, 228, 160, 0.09);
+  --line-strong: rgba(200, 228, 160, 0.18);
+
+  /* Text */
+  --text-1: #edf1e5;
+  --text-2: #b1bca5;
+  --text-3: #86937b;
+
+  /* Accent: soft lime */
+  --lime: #c5f26b;
+  --lime-bright: #d8fa8f;
+  --lime-ink: #11190a;
+  --lime-soft: rgba(197, 242, 107, 0.12);
+  --lime-line: rgba(197, 242, 107, 0.4);
+
+  /* Semantic */
+  --danger: #f28b74;
+  --danger-soft: rgba(242, 139, 116, 0.14);
+  --warn: #e9c872;
+  --warn-soft: rgba(233, 200, 114, 0.12);
+
+  /* Board */
+  --board-light: #eee7d1;
+  --board-dark: #6d8c61;
+  --board-frame: #0c110b;
+
+  /* Shape and depth */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.035) inset, 0 12px 32px -12px rgba(0, 0, 0, 0.6);
+  --shadow-board: 0 40px 80px -30px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(200, 228, 160, 0.1);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 140ms;
+  --dur-med: 240ms;
+
+  /* Layout */
+  --page-max: 1360px;
+  --page-gutter: clamp(14px, 3vw, 32px);
+  --tap-min: 44px;
+}
