@@ -1,0 +1,62 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 32px;
+  padding: 0 13px 0 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-2);
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-3);
+  color: var(--text-3);
+}
+
+.pill--connected {
+  color: var(--lime);
+  border-color: var(--lime-line);
+}
+
+.pill--connected .pill__dot {
+  background: var(--lime);
+  color: var(--lime);
+}
+
+.pill--thinking {
+  color: var(--lime-bright);
+  border-color: var(--lime-line);
+  background: var(--lime-soft);
+}
+
+.pill--thinking .pill__dot {
+  background: var(--lime);
+  color: var(--lime);
+  animation: pulse-ring 1.2s ease-out infinite;
+}
+
+.pill--disconnected .pill__dot {
+  background: var(--warn);
+}
+
+.pill__short {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .pill__long {
+    display: none;
+  }
+
+  .pill__short {
+    display: inline;
+  }
+}

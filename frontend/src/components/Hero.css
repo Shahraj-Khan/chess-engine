@@ -1,0 +1,38 @@
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 32px;
+  padding: clamp(18px, 3vw, 30px) 0 clamp(14px, 2vw, 22px);
+}
+
+.hero__heading {
+  display: grid;
+  gap: 8px;
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4.4vw, 44px);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+
+.hero__title em {
+  font-style: normal;
+  color: var(--lime);
+}
+
+.hero__lead {
+  font-size: clamp(14px, 1.6vw, 16px);
+  color: var(--text-2);
+}
+
+@media (max-width: 640px) {
+  .hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
