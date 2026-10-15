@@ -8,12 +8,13 @@ import { Move, MoveType } from "../move/move.js";
 import { makeMove } from "../move/make-move.js";
 import { MoveGenerator } from "../move/move-generator.js";
 import { iterativeDeepening } from "../search/iterative-deepening.js";
+import { findBookMove } from "../opening-book/opening-book.js";
 
 let position = parseFen(START_FEN);
+let playedMoves: string[] = [];
 
 function moveToUci(move: Move): string {
-  let result =
-    squareToString(move.from) + squareToString(move.to);
+  let result = squareToString(move.from) + squareToString(move.to);
 
   if (move.type === MoveType.PROMOTION) {
     const promotionNames: Record<number, string> = {
@@ -29,16 +30,14 @@ function moveToUci(move: Move): string {
   return result;
 }
 
-
-
 function setPosition(command: string): void {
   const tokens = command.trim().split(/\s+/);
   const movesIndex = tokens.indexOf("moves");
-
   const baseTokens =
     movesIndex === -1 ? tokens : tokens.slice(0, movesIndex);
 
   let nextPosition: Position;
+  const nextPlayedMoves: string[] = [];
 
   try {
     if (baseTokens[1] === "startpos") {
@@ -96,11 +95,12 @@ function setPosition(command: string): void {
         }
 
         makeMove(nextPosition, move);
+        nextPlayedMoves.push(moveText.toLowerCase());
       }
     }
 
-    // Commit only after the entire position and move history are valid.
     position = nextPosition;
+    playedMoves = nextPlayedMoves;
   } catch (error) {
     const message =
       error instanceof Error ? error.message : String(error);
@@ -108,7 +108,6 @@ function setPosition(command: string): void {
     console.log(`info string Invalid position: ${message}`);
   }
 }
-
 
 export function startUci(): void {
   const rl = createInterface({
@@ -129,10 +128,10 @@ export function startUci(): void {
         console.log("readyok");
       } else if (command === "ucinewgame") {
         position = Position.initial();
+        playedMoves = [];
       } else if (command.startsWith("position ")) {
         setPosition(command);
-      } 
-      else if (command === "go" || command.startsWith("go ")) {
+      } else if (command === "go" || command.startsWith("go ")) {
         const tokens = command.split(/\s+/);
         const depthIndex = tokens.indexOf("depth");
         const movetimeIndex = tokens.indexOf("movetime");
@@ -143,10 +142,7 @@ export function startUci(): void {
         if (movetimeIndex !== -1) {
           const movetime = Number(tokens[movetimeIndex + 1]);
 
-          if (
-            !Number.isInteger(movetime) ||
-            movetime < 1
-          ) {
+          if (!Number.isInteger(movetime) || movetime < 1) {
             console.log("info string Invalid movetime");
             console.log("bestmove 0000");
             return;
@@ -164,24 +160,28 @@ export function startUci(): void {
           return;
         }
 
-const searchStart = performance.now();
+        const searchStart = performance.now();
+        const bookMove = findBookMove(position, playedMoves);
 
-const result = iterativeDeepening(position, depth, control);
+        if (bookMove) {
+          const elapsed = performance.now() - searchStart;
+          console.log("info string Opening book move");
+          console.log(`info string Search time: ${elapsed.toFixed(1)} ms`);
+          console.log(`info depth ${depth}`);
+          console.log(`bestmove ${moveToUci(bookMove)}`);
+          return;
+        }
 
-const searchElapsed = performance.now() - searchStart;
+        const result = iterativeDeepening(position, depth, control);
+        const searchElapsed = performance.now() - searchStart;
 
-console.log(
-  `info string Search time: ${searchElapsed.toFixed(1)} ms`
-);
-
-
+        console.log(
+          `info string Search time: ${searchElapsed.toFixed(1)} ms`,
+        );
         console.log(`info depth ${result.completedDepth}`);
         console.log(
-          `bestmove ${
-            result.bestMove ? moveToUci(result.bestMove) : "0000"
-          }`,
+          `bestmove ${result.bestMove ? moveToUci(result.bestMove) : "0000"}`,
         );
-
       } else if (command === "quit") {
         rl.close();
       } else if (command !== "") {
